@@ -81,9 +81,9 @@ Variables d'environnement conseillees:
 
 Pour **Kokoro TTS**:
 
-- `TTS_KOKORO_MODEL_PATH=./models/kokoro-v1.0.onnx`
+- `TTS_KOKORO_MODEL_PATH=./models/kokoro-v1.0.fp16.onnx`
 - `TTS_KOKORO_VOICES_PATH=./models/voices-v1.0.bin`
-- `TTS_KOKORO_MODEL_URL=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx`
+- `TTS_KOKORO_MODEL_URL=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.fp16.onnx`
 - `TTS_KOKORO_VOICES_URL=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin`
 - `TTS_KOKORO_AUTO_DOWNLOAD=true`
 

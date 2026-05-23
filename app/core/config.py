@@ -16,11 +16,11 @@ class Settings(BaseSettings):
     tts_default_voice: str = "autumn"
     tts_default_response_format: str = "wav"
     tts_request_timeout_sec: float = 45.0
-    tts_kokoro_model_path: str = "./models/kokoro-v1.0.onnx"
+    tts_kokoro_model_path: str = "./models/kokoro-v1.0.fp16.onnx"
     tts_kokoro_voices_path: str = "./models/voices-v1.0.bin"
-    tts_kokoro_model_url: str | None = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+    tts_kokoro_model_url: str | None = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.fp16.onnx"
     tts_kokoro_voices_url: str | None = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
-    tts_kokoro_model_name: str = "kokoro-v1.0.onnx"
+    tts_kokoro_model_name: str = "kokoro-v1.0.fp16.onnx"
     tts_kokoro_default_voice: str = "af_sarah"
     tts_kokoro_default_lang: str = "en-us"
     tts_kokoro_auto_download: bool = True
