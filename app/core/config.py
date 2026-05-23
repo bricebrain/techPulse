@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     allowed_origins_raw: str = "http://localhost:5173,http://127.0.0.1:5173"
     tts_provider_api_key: str | None = None
     tts_provider_base_url: str = "https://api.groq.com/openai/v1"
-    tts_provider: str = "groq"
+    tts_provider: str = "kokoro"
     tts_default_model: str = "canopylabs/orpheus-v1-english"
     tts_default_voice: str = "autumn"
     tts_default_response_format: str = "wav"

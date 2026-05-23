@@ -38,13 +38,24 @@ class KokoroTTSProvider(BaseTTSProvider):
         target.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            async with httpx.AsyncClient(timeout=180) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise RuntimeError(f"Echec du telechargement Kokoro: {url}") from exc
+            timeout = httpx.Timeout(connect=30.0, read=900.0, write=60.0, pool=60.0)
+            async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+                async with client.stream("GET", url) as response:
+                    response.raise_for_status()
+                    with target.open("wb") as file_stream:
+                        async for chunk in response.aiter_bytes():
+                            if chunk:
+                                file_stream.write(chunk)
 
-        target.write_bytes(response.content)
+            if target.stat().st_size < 1024 * 1024:
+                target.unlink(missing_ok=True)
+                raise RuntimeError("Le fichier telecharge est incomplet.")
+        except httpx.HTTPError as exc:
+            target.unlink(missing_ok=True)
+            raise RuntimeError(f"Echec du telechargement Kokoro: {url} ({exc})") from exc
+        except OSError as exc:
+            target.unlink(missing_ok=True)
+            raise RuntimeError(f"Ecriture locale du modele Kokoro impossible: {target}") from exc
 
     async def _ensure_assets(self) -> tuple[Path, Path]:
         model_path = self._resolve_model_path()
