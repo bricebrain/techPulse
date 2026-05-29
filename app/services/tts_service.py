@@ -3,7 +3,6 @@ import base64
 from app.core.config import settings
 from app.schemas.tts import TTSSynthesizeRequest, TTSSynthesizeResponse
 from app.services.tts_providers.groq_provider import GroqTTSProvider
-from app.services.tts_providers.kokoro_provider import KokoroTTSProvider
 from app.services.tts_providers.parler_provider import ParlerHFProvider
 
 
@@ -17,23 +16,29 @@ class TTSProviderError(Exception):
 
 class TTSService:
     def __init__(self) -> None:
+        # Kokoro supprimé : trop lourd pour Render free tier (512MB).
+        # Parler-TTS via HF Inference API remplace Kokoro pour le podcast Worker.
+        # "kokoro" dans le schéma est redirigé vers "parler_hf" pour compatibilité.
         self._providers = {
             "groq": GroqTTSProvider(),
-            "kokoro": KokoroTTSProvider(),
             "parler_hf": ParlerHFProvider(),
         }
 
     @staticmethod
     def _normalize_provider_name(name: str | None) -> str:
         raw_name = (name or "").strip().lower()
-        return raw_name if raw_name in {"groq", "kokoro", "parler_hf"} else "parler_hf"
+        # "kokoro" redirigé vers parler_hf (compat API mobile)
+        if raw_name == "kokoro":
+            return "parler_hf"
+        return raw_name if raw_name in {"groq", "parler_hf"} else "parler_hf"
 
     def _resolve_provider_order(self, requested_provider: str) -> list[str]:
-        if requested_provider in {"groq", "kokoro", "parler_hf"}:
-            return [requested_provider]
+        normalized = self._normalize_provider_name(requested_provider)
+        if normalized in {"groq", "parler_hf"}:
+            return [normalized]
 
         preferred = self._normalize_provider_name(settings.tts_provider)
-        fallback = "kokoro" if preferred == "groq" else "groq"
+        fallback = "groq" if preferred == "parler_hf" else "parler_hf"
         return [preferred, fallback]
 
     async def synthesize(self, payload: TTSSynthesizeRequest) -> TTSSynthesizeResponse:
@@ -41,7 +46,10 @@ class TTSService:
         provider_order = self._resolve_provider_order(payload.provider)
 
         for provider_name in provider_order:
-            provider = self._providers[provider_name]
+            provider = self._providers.get(provider_name)
+            if not provider:
+                errors.append(f"{provider_name}: provider non disponible")
+                continue
 
             try:
                 result = await provider.synthesize(payload)
@@ -56,11 +64,11 @@ class TTSService:
                 )
             except ValueError as exc:
                 errors.append(f"{provider_name}: {exc}")
-                if payload.provider in {"groq", "kokoro"}:
+                if payload.provider == "groq":
                     raise TTSConfigurationError(str(exc)) from exc
             except RuntimeError as exc:
                 errors.append(f"{provider_name}: {exc}")
-                if payload.provider in {"groq", "kokoro"}:
+                if payload.provider == "groq":
                     raise TTSProviderError(str(exc)) from exc
 
         if errors:
