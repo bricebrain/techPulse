@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     tts_kokoro_default_lang: str = "en-us"
     tts_kokoro_auto_download: bool = True
 
+    # Secret partagé avec le Worker Cloudflare pour sécuriser le proxy Reddit
+    reddit_proxy_secret: str | None = None
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     @property

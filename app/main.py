@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.health import router as health_router
 from app.api.routes.ai import router as ai_router
 from app.api.routes.tts import router as tts_router
+from app.api.routes.reddit import router as reddit_router
 from app.core.config import settings
 
 
@@ -29,6 +30,7 @@ def create_application() -> FastAPI:
     app.include_router(health_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")
     app.include_router(tts_router, prefix="/api/v1")
+    app.include_router(reddit_router, prefix="/api/v1")
 
     return app
 
