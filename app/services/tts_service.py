@@ -4,6 +4,7 @@ from app.core.config import settings
 from app.schemas.tts import TTSSynthesizeRequest, TTSSynthesizeResponse
 from app.services.tts_providers.groq_provider import GroqTTSProvider
 from app.services.tts_providers.kokoro_provider import KokoroTTSProvider
+from app.services.tts_providers.parler_provider import ParlerHFProvider
 
 
 class TTSConfigurationError(Exception):
@@ -19,15 +20,16 @@ class TTSService:
         self._providers = {
             "groq": GroqTTSProvider(),
             "kokoro": KokoroTTSProvider(),
+            "parler_hf": ParlerHFProvider(),
         }
 
     @staticmethod
     def _normalize_provider_name(name: str | None) -> str:
         raw_name = (name or "").strip().lower()
-        return raw_name if raw_name in {"groq", "kokoro"} else "groq"
+        return raw_name if raw_name in {"groq", "kokoro", "parler_hf"} else "parler_hf"
 
     def _resolve_provider_order(self, requested_provider: str) -> list[str]:
-        if requested_provider in {"groq", "kokoro"}:
+        if requested_provider in {"groq", "kokoro", "parler_hf"}:
             return [requested_provider]
 
         preferred = self._normalize_provider_name(settings.tts_provider)
