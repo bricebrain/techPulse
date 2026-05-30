@@ -5,8 +5,8 @@ Utilise les voix neurales Microsoft via le même service que Edge browser.
 Gratuit, sans clé API, voix françaises excellentes.
 
 Voix podcast :
-  host     → fr-FR-HenriNeural          (masculin, chaleureux)
-  analyst  → fr-FR-RemyMultilingualNeural  (masculin, posé)
+  host     → fr-FR-HenriNeural  (masculin, chaleureux)
+  analyst  → fr-FR-HenriNeural  (même voix — Remy trop monotone)
   default  → fr-FR-HenriNeural
 
 Sortie : MP3 (format natif Edge-TTS).
@@ -21,7 +21,7 @@ from app.services.tts_providers.base import BaseTTSProvider, ProviderSynthesisRe
 
 VOICE_MAP: dict[str, str] = {
     "host":    "fr-FR-HenriNeural",
-    "analyst": "fr-FR-RemyMultilingualNeural",
+    "analyst": "fr-FR-HenriNeural",
     "default": "fr-FR-HenriNeural",
 }
 
