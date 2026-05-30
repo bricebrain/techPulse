@@ -2,6 +2,7 @@ import base64
 
 from app.core.config import settings
 from app.schemas.tts import TTSSynthesizeRequest, TTSSynthesizeResponse
+from app.services.tts_providers.edge_provider import EdgeTTSProvider
 from app.services.tts_providers.groq_provider import GroqTTSProvider
 from app.services.tts_providers.parler_provider import ParlerHFProvider
 
@@ -16,30 +17,31 @@ class TTSProviderError(Exception):
 
 class TTSService:
     def __init__(self) -> None:
-        # Kokoro supprimé : trop lourd pour Render free tier (512MB).
-        # Parler-TTS via HF Inference API remplace Kokoro pour le podcast Worker.
-        # "kokoro" dans le schéma est redirigé vers "parler_hf" pour compatibilité.
+        # Priorité : Edge-TTS (gratuit, voix neurales FR, sans clé)
+        #           → Parler-HF (HF Inference API, si HF_TOKEN dispo)
+        #           → Groq (Orpheus, si clé dispo)
+        # Kokoro supprimé : trop lourd pour Render free (512 MB).
+        # "kokoro" dans le schéma redirige vers edge_tts pour compatibilité.
         self._providers = {
-            "groq": GroqTTSProvider(),
+            "edge_tts": EdgeTTSProvider(),
             "parler_hf": ParlerHFProvider(),
+            "groq": GroqTTSProvider(),
         }
 
     @staticmethod
     def _normalize_provider_name(name: str | None) -> str:
         raw_name = (name or "").strip().lower()
-        # "kokoro" redirigé vers parler_hf (compat API mobile)
-        if raw_name == "kokoro":
-            return "parler_hf"
-        return raw_name if raw_name in {"groq", "parler_hf"} else "parler_hf"
+        if raw_name in {"kokoro", "auto", ""}:
+            return "edge_tts"
+        return raw_name if raw_name in {"edge_tts", "parler_hf", "groq"} else "edge_tts"
 
     def _resolve_provider_order(self, requested_provider: str) -> list[str]:
         normalized = self._normalize_provider_name(requested_provider)
-        if normalized in {"groq", "parler_hf"}:
+        if normalized in {"groq", "parler_hf", "edge_tts"}:
             return [normalized]
 
         preferred = self._normalize_provider_name(settings.tts_provider)
-        fallback = "groq" if preferred == "parler_hf" else "parler_hf"
-        return [preferred, fallback]
+        return [preferred, "edge_tts"]
 
     async def synthesize(self, payload: TTSSynthesizeRequest) -> TTSSynthesizeResponse:
         errors: list[str] = []
